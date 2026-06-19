@@ -3,7 +3,7 @@
 SCRIPTS_DIR := scripts
 
 help:
-	@echo "KubeCon Observability Stack - Makefile"
+	@echo "Observability Stack - Makefile"
 	@echo ""
 	@echo "Setup and Management:"
 	@echo "  make setup          - Run full setup (steps 1-12)"
@@ -100,9 +100,14 @@ logs:
 clean:
 	@echo "Cleaning up..."
 	@echo "Stopping cloud-provider-kind..."
-	@pkill -f cloud-provider-kind || echo "No cloud-provider-kind process to stop"
+	@pids=$$(pgrep -af cloud-provider-kind | grep -v 'make clean' | grep -v 'pkill' | awk '{print $$1}' || true); \
+	if [ -n "$$pids" ]; then \
+		echo "$$pids" | xargs kill; \
+	else \
+		echo "No cloud-provider-kind process to stop"; \
+	fi
 	@echo "Deleting kind cluster..."
-	@kind delete cluster --name kubecon || echo "No cluster to delete"
+	@kind delete cluster --name observability || echo "No cluster to delete"
 	@echo "Cleanup complete!"
 
 .PHONY: help setup clean logs status verify urls step-1 step-2 step-3 step-4 step-5 step-6 step-7 step-8 step-9 step-10 step-11 step-12

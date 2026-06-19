@@ -316,10 +316,10 @@ This will:
 pkill -f cloud-provider-kind
 
 # Delete kind cluster
-kind delete cluster --name kubecon
+kind delete cluster --name ${CLUSTER_NAME}
 
 # Delete Docker containers
-docker ps -a | grep kubecon | awk '{print $1}' | xargs docker rm -f
+docker ps -a | grep ${CLUSTER_NAME} | awk '{print $1}' | xargs docker rm -f
 ```
 
 ## Customization
