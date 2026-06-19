@@ -45,6 +45,15 @@ make help
 make setup
 ```
 
+### Prerequisites
+
+- docker
+- kind
+- kubectl
+- helm
+- go (version 1.20+ for cloud-provider-kind)
+
+
 ### Individual Steps
 
 Run any step independently:
