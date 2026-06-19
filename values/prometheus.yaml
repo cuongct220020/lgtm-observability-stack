@@ -1,0 +1,15 @@
+# Prometheus Operator (kube-prometheus-stack) values
+# Configured to remote_write metrics to Mimir
+
+grafana:
+  enabled: false
+
+prometheus-node-exporter:
+  enabled: true
+
+prometheus:
+  prometheusSpec:
+    remoteWrite:
+      - url: "http://lgtm-mimir-nginx.monitoring.svc.cluster.local:80/api/v1/push"
+        headers:
+          X-Scope-OrgID: "demo"

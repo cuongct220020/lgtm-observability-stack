@@ -1,0 +1,30 @@
+# Grafana values
+
+adminPassword: admin
+
+service:
+  type: LoadBalancer
+
+sidecar:
+  dashboards:
+    enabled: true
+    label: grafana_dashboard
+    searchNamespace: monitoring
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        uid: prometheus
+        type: prometheus
+        url: http://lgtm-mimir-nginx.monitoring.svc.cluster.local:80/prometheus
+        isDefault: true
+      - name: Loki
+        uid: loki
+        type: loki
+        url: http://lgtm-loki-gateway.monitoring.svc.cluster.local:80
+      - name: Tempo
+        uid: tempo
+        type: tempo
+        url: http://lgtm-tempo.monitoring.svc.cluster.local:3100

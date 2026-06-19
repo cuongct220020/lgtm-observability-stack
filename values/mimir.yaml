@@ -1,0 +1,41 @@
+# Mimir (Grafana Metrics Storage) values
+
+global:
+  clusterDomain: cluster.local
+
+mimir:
+  structuredConfig:
+    multitenancy_enabled: false
+
+ingester:
+  replicas: 1
+
+distributor:
+  replicas: 1
+
+querier:
+  replicas: 1
+
+query-frontend:
+  replicas: 1
+
+query-scheduler:
+  replicas: 1
+
+store-gateway:
+  replicas: 1
+
+compactor:
+  replicas: 1
+
+ruler:
+  replicas: 1
+
+alertmanager:
+  replicas: 1
+
+overrides_exporter:
+  replicas: 1
+
+minio:
+  enabled: true

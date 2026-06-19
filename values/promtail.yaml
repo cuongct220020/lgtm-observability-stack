@@ -1,0 +1,5 @@
+# Promtail (Log shipper for Loki) values
+
+config:
+  clients:
+    - url: http://lgtm-loki.monitoring.svc.cluster.local:3100/loki/api/v1/push

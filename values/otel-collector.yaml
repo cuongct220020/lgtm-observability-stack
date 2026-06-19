@@ -1,0 +1,47 @@
+# OpenTelemetry Collector Gateway values
+
+mode: deployment
+
+image:
+  repository: otel/opentelemetry-collector-contrib
+
+service:
+  enabled: true
+
+config:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: "0.0.0.0:4317"
+        http:
+          endpoint: "0.0.0.0:4318"
+  
+  exporters:
+    otlp/tempo:
+      endpoint: "lgtm-tempo.monitoring.svc.cluster.local:4317"
+      tls:
+        insecure: true
+    
+    prometheusremotewrite:
+      endpoint: "http://lgtm-mimir-nginx.monitoring.svc.cluster.local:80/api/v1/push"
+    
+    otlphttp/loki:
+      endpoint: "http://lgtm-loki.monitoring.svc.cluster.local:3100/otlp/v1/logs"
+    
+    debug:
+      verbosity: basic
+  
+  service:
+    pipelines:
+      traces:
+        receivers: [otlp]
+        exporters: [otlp/tempo]
+      
+      metrics:
+        receivers: [otlp]
+        exporters: [prometheusremotewrite]
+      
+      logs:
+        receivers: [otlp]
+        exporters: [otlphttp/loki, debug]

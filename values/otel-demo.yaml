@@ -1,0 +1,21 @@
+# OpenTelemetry Astronomy Shop Demo values
+
+opentelemetry-collector:
+  enabled: false
+
+# Note: OTEL_COLLECTOR_SERVICE is set in co.sh and injected here
+# Update the values below if you change the OTel Collector service name
+
+default:
+  env:
+    - name: OTEL_COLLECTOR_NAME
+      value: "otel-collector-opentelemetry-collector.monitoring.svc.cluster.local"
+    - name: OTEL_COLLECTOR_HOST
+      value: "otel-collector-opentelemetry-collector.monitoring.svc.cluster.local"
+    - name: OTEL_COLLECTOR_PORT_GRPC
+      value: "4317"
+
+components:
+  frontendProxy:
+    service:
+      type: LoadBalancer
