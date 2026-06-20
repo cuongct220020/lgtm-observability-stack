@@ -100,12 +100,8 @@ logs:
 clean:
 	@echo "Cleaning up..."
 	@echo "Stopping cloud-provider-kind..."
-	@pids=$$(pgrep -af cloud-provider-kind | grep -v 'make clean' | grep -v 'pkill' | awk '{print $$1}' || true); \
-	if [ -n "$$pids" ]; then \
-		echo "$$pids" | xargs kill; \
-	else \
-		echo "No cloud-provider-kind process to stop"; \
-	fi
+	@pkill -f cloud-provider-kind 2>/dev/null || true
+	@sleep 1
 	@echo "Deleting kind cluster..."
 	@kind delete cluster --name observability || echo "No cluster to delete"
 	@echo "Cleanup complete!"
