@@ -1,0 +1,131 @@
+.PHONY: help setup clean quick-clean logs status verify urls step-1 step-2 step-3 step-4 step-5 step-6 step-7 step-8 step-9 step-10 step-11 step-12
+.SILENT:
+
+SCRIPTS_DIR := scripts
+CLUSTER_NAME := observability
+LOG_FILE := /tmp/cloud-provider-kind.log
+
+# Define scripts as variables for DRY principle
+SCRIPT_1 := $(SCRIPTS_DIR)/01-create-cluster.sh
+SCRIPT_2 := $(SCRIPTS_DIR)/02-label-control-plane.sh
+SCRIPT_3 := $(SCRIPTS_DIR)/03-cloud-provider-kind.sh
+SCRIPT_4 := $(SCRIPTS_DIR)/04-helm-repos.sh
+SCRIPT_5 := $(SCRIPTS_DIR)/05-prometheus-stack.sh
+SCRIPT_6 := $(SCRIPTS_DIR)/06-lgtm-stack.sh
+SCRIPT_7 := $(SCRIPTS_DIR)/07-otel-collector.sh
+SCRIPT_8 := $(SCRIPTS_DIR)/08-otel-demo.sh
+SCRIPT_9 := $(SCRIPTS_DIR)/09-grafana-dashboard.sh
+SCRIPT_10 := $(SCRIPTS_DIR)/10-loadbalancer-ips.sh
+SCRIPT_11 := $(SCRIPTS_DIR)/11-traffic-generation.sh
+SCRIPT_12 := $(SCRIPTS_DIR)/12-verification.sh
+
+help:
+	echo "Observability Stack - Makefile"
+	echo ""
+	echo "Setup and Management:"
+	echo "  make setup          - Run full setup (steps 1-12)"
+	echo "  make clean          - Gracefully stop cloud-provider-kind & delete kind cluster"
+	echo "  make quick-clean    - Force kill cloud-provider-kind only (keep cluster)"
+	echo "  make verify         - Run verification checks (step 12)"
+	echo ""
+	echo "Access & Information:"
+	echo "  make urls           - Get UI access URLs and component status"
+	echo ""
+	echo "Individual Steps:"
+	echo "  make step-{1..12}   - Run individual setup step"
+	echo ""
+	echo "Debugging:"
+	echo "  make logs           - Show cloud-provider-kind logs"
+	echo "  make status         - Show cluster and resource status"
+	echo ""
+
+setup: step-1 step-2 step-3 step-4 step-5 step-6 step-7 step-8 step-9 step-10 step-11 step-12
+	echo ""
+	echo "✓ Setup complete! All 12 steps executed."
+
+step-1: check-scripts
+	@$(SCRIPT_1)
+
+step-2: check-scripts
+	@$(SCRIPT_2)
+
+step-3: check-scripts
+	@$(SCRIPT_3)
+
+step-4: check-scripts
+	@$(SCRIPT_4)
+
+step-5: check-scripts
+	@$(SCRIPT_5)
+
+step-6: check-scripts
+	@$(SCRIPT_6)
+
+step-7: check-scripts
+	@$(SCRIPT_7)
+
+step-8: check-scripts
+	@$(SCRIPT_8)
+
+step-9: check-scripts
+	@$(SCRIPT_9)
+
+step-10: check-scripts
+	@$(SCRIPT_10)
+
+step-11: check-scripts
+	@$(SCRIPT_11)
+
+step-12: check-scripts
+	@$(SCRIPT_12)
+
+check-scripts:
+	@for script in $(SCRIPT_1) $(SCRIPT_2) $(SCRIPT_3) $(SCRIPT_4) $(SCRIPT_5) $(SCRIPT_6) $(SCRIPT_7) $(SCRIPT_8) $(SCRIPT_9) $(SCRIPT_10) $(SCRIPT_11) $(SCRIPT_12); do \
+		if [ ! -f "$$script" ] || [ ! -x "$$script" ]; then \
+			echo "ERROR: Script $$script not found or not executable"; \
+			exit 1; \
+		fi; \
+	done
+
+verify:
+	@$(SCRIPT_12)
+
+urls:
+	@$(SCRIPTS_DIR)/get-urls.sh
+
+status:
+	echo "===== Kind Clusters ====="
+	kind get clusters || echo "No clusters found"
+	echo ""
+	echo "===== Kubernetes Nodes ====="
+	kubectl get nodes 2>/dev/null || echo "No nodes (cluster not running?)"
+	echo ""
+	echo "===== Monitoring Namespace ====="
+	kubectl get all -n monitoring 2>/dev/null || echo "Monitoring namespace not found"
+	echo ""
+	echo "===== Demo Namespace ====="
+	kubectl get all -n otel-demo 2>/dev/null || echo "Demo namespace not found"
+
+logs:
+	echo "===== cloud-provider-kind logs ====="
+	if [ -f $(LOG_FILE) ]; then tail -50 $(LOG_FILE); else echo "Log file not found: $(LOG_FILE)"; fi
+	echo ""
+	echo "===== Running cloud-provider-kind processes ====="
+	pgrep -af cloud-provider-kind || echo "No cloud-provider-kind processes running"
+
+clean: kill-provider delete-cluster
+	echo "✓ Cleanup complete!"
+
+quick-clean: kill-provider
+	echo "✓ cloud-provider-kind stopped (cluster preserved)"
+
+kill-provider:
+	echo "Stopping cloud-provider-kind (SIGTERM)..."
+	pkill -f cloud-provider-kind 2>/dev/null || true
+	sleep 1
+	echo "Force killing any remaining processes (SIGKILL)..."
+	pkill -9 -f cloud-provider-kind 2>/dev/null || true
+
+delete-cluster:
+	echo "Deleting kind cluster..."
+	kind delete cluster --name $(CLUSTER_NAME) 2>/dev/null || echo "No cluster to delete"
